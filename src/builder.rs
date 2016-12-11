@@ -107,6 +107,14 @@ impl Builder {
             call.into()
         }
     }
+    /// Build an instruction that converts `val` to a floating point `dest`.
+    pub fn build_fp_to_si(&self, val: &Value, dest: &Type) -> &Value {
+        unsafe { core::LLVMBuildFPToSI(self.into(), val.into(), dest.into(), NULL_NAME.as_ptr()).into() }
+    }
+    /// Build an instruction that converts `val` to an integer `dest`.
+    pub fn build_si_to_fp(&self, val: &Value, dest: &Type) -> &Value {
+        unsafe { core::LLVMBuildSIToFP(self.into(), val.into(), dest.into(), NULL_NAME.as_ptr()).into() }
+    }
     /// Build an instruction that yields to `true_val` if `cond` is equal to `1`, and `false_val` otherwise.
     pub fn build_select(&self, cond: &Value, true_val: &Value, false_val: &Value) -> &Value {
         unsafe { core::LLVMBuildSelect(self.into(), cond.into(), true_val.into(), false_val.into(), NULL_NAME.as_ptr()).into() }
