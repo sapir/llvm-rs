@@ -48,6 +48,7 @@ impl<'a> Compile<'a> for bool {
         unsafe { core::LLVMInt1TypeInContext(ctx.into()) }.into()
     }
 }
+
 impl<'a> Compile<'a> for f32 {
     fn compile(self, context: &'a Context) -> &'a Value {
         unsafe { core::LLVMConstReal(Self::get_type(context).into(), self as f64) }.into()
@@ -149,7 +150,7 @@ compile_tuple!{A = a, B = b, C = c, D = d, E = e}
 compile_tuple!{A = a, B = b, C = c, D = d, E = e, F = f}
 compile_tuple!{A = a, B = b, C = c, D = d, E = e, F = f, G = g}
 
-macro_rules! compile_array(
+#[macro_export] macro_rules! compile_array(
     ($ty:ty, $num:expr) => (
         impl<'a, T> Compile<'a> for $ty where T: Copy + Compile<'a> + 'a {
             fn compile(self, context: &'a Context) -> &'a Value {
@@ -162,6 +163,7 @@ macro_rules! compile_array(
         }
     )
 );
+
 compile_array!{[T; 0], 0}
 compile_array!{[T; 1], 1}
 compile_array!{[T; 2], 2}
