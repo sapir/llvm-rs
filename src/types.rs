@@ -302,3 +302,29 @@ impl VoidType {
         unsafe { core::LLVMGetArrayLength(self.into()) as usize }
     }
 }
+
+/// A Float type.
+pub struct FloatType(PhantomData<[u8]>);
+native_ref!{&FloatType = LLVMTypeRef}
+get_context!{FloatType, LLVMGetTypeContext}
+to_str!{FloatType, LLVMPrintTypeToString}
+sub!{FloatType, LLVMFloatTypeKind}
+impl FloatType {
+    /// Make a new Float type that will be the size of the given number of bits.
+    pub fn new(context: &Context) -> &FloatType {
+        unsafe { core::LLVMFloatTypeInContext(context.into()) }.into()
+    }
+}
+
+/// A Float type.
+pub struct DoubleType(PhantomData<[u8]>);
+native_ref!{&DoubleType = LLVMTypeRef}
+get_context!{DoubleType, LLVMGetTypeContext}
+to_str!{DoubleType, LLVMPrintTypeToString}
+sub!{DoubleType, LLVMDoubleTypeKind}
+impl DoubleType {
+    /// Make a new Float type that will be the size of the given number of bits.
+    pub fn new(context: &Context) -> &DoubleType{
+        unsafe { core::LLVMDoubleTypeInContext(context.into()) }.into()
+    }
+}
