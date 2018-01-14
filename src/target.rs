@@ -1,6 +1,6 @@
-use libc::{c_char,  c_uint};
+use libc::{c_char, c_uint};
 use ffi::target_machine::{self, LLVMTargetRef};
-use ffi::target::{self, LLVMTargetDataRef, LLVMOpaqueTargetData};
+use ffi::target::{self, LLVMOpaqueTargetData, LLVMTargetDataRef};
 use cbox::{CBox, DisposeRef};
 use std::ffi::CString;
 use std::fmt;
@@ -16,9 +16,7 @@ impl TargetData {
     /// Create a target data from a target layout string.
     pub fn new(rep: &str) -> CBox<TargetData> {
         let c_rep = CString::new(rep).unwrap();
-        CBox::new(unsafe {
-            target::LLVMCreateTargetData(c_rep.as_ptr())
-        })
+        CBox::new(unsafe { target::LLVMCreateTargetData(c_rep.as_ptr()) })
     }
     /// Returns true if the target is big endian.
     pub fn is_big_endian(&self) -> bool {
@@ -51,9 +49,7 @@ impl TargetData {
     }
     /// Returns the string representation of this target data.
     pub fn as_str(&self) -> CBox<str> {
-        unsafe {
-            CBox::new(target::LLVMCopyStringRepOfTargetData(self.into()))
-        }
+        unsafe { CBox::new(target::LLVMCopyStringRepOfTargetData(self.into())) }
     }
 }
 impl fmt::Display for TargetData {
@@ -74,11 +70,17 @@ native_ref!(&Target = LLVMTargetRef);
 impl Target {
     /// Returns the name of this target.
     pub fn get_name(&self) -> &str {
-        unsafe { util::to_str(target_machine::LLVMGetTargetName(self.into()) as *mut c_char) }
+        unsafe {
+            util::to_str(target_machine::LLVMGetTargetName(self.into())
+                as *mut c_char)
+        }
     }
     /// Returns the description of this target.
     pub fn get_description(&self) -> &str {
-        unsafe { util::to_str(target_machine::LLVMGetTargetDescription(self.into()) as *mut c_char) }
+        unsafe {
+            util::to_str(target_machine::LLVMGetTargetDescription(self.into())
+                as *mut c_char)
+        }
     }
     /// Returns true if this target has an assembly generation backend implemented.
     pub fn has_asm_backend(&self) -> bool {

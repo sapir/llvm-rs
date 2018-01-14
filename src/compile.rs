@@ -67,7 +67,13 @@ impl<'a> Compile<'a> for f64 {
 }
 impl<'a> Compile<'a> for char {
     fn compile(self, context: &'a Context) -> &'a Value {
-        unsafe { core::LLVMConstInt(Self::get_type(context).into(), self as u32 as c_ulonglong, 0) }.into()
+        unsafe {
+            core::LLVMConstInt(
+                Self::get_type(context).into(),
+                self as u32 as c_ulonglong,
+                0,
+            )
+        }.into()
     }
     fn get_type(ctx: &'a Context) -> &'a Type {
         unsafe { core::LLVMInt32TypeInContext(ctx.into()) }.into()

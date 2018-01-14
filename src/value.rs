@@ -1,4 +1,4 @@
-use libc::{c_char, c_uint, c_int};
+use libc::{c_char, c_int, c_uint};
 use ffi::prelude::LLVMValueRef;
 use ffi::{core, LLVMAttribute};
 use ffi::LLVMLinkage;
@@ -42,11 +42,20 @@ to_str!{Value, LLVMPrintValueToString}
 impl Value {
     /// Create a new constant struct from the values given.
     pub fn new_struct<'a>(context: &'a Context, vals: &[&'a Value], packed: bool) -> &'a Value {
-        unsafe { core::LLVMConstStructInContext(context.into(), vals.as_ptr() as *mut LLVMValueRef, vals.len() as c_uint, packed as c_int) }.into()
+        unsafe {
+            core::LLVMConstStructInContext(
+                context.into(),
+                vals.as_ptr() as *mut LLVMValueRef,
+                vals.len() as c_uint,
+                packed as c_int,
+            )
+        }.into()
     }
     /// Create a new constant vector from the values given.
     pub fn new_vector<'a>(vals: &[&'a Value]) -> &'a Value {
-        unsafe { core::LLVMConstVector(vals.as_ptr() as *mut LLVMValueRef, vals.len() as c_uint).into() }
+        unsafe {
+            core::LLVMConstVector(vals.as_ptr() as *mut LLVMValueRef, vals.len() as c_uint).into()
+        }
     }
     /// Create a new constant C string from the text given.
     pub fn new_string<'a>(context: &'a Context, text: &str, rust_style: bool) -> &'a Value {
@@ -70,9 +79,7 @@ impl Value {
     /// Sets the name of this value
     pub fn set_name(&self, name: &str) {
         let c_name = CString::new(name).unwrap();
-        unsafe {
-            core::LLVMSetValueName(self.into(), c_name.as_ptr())
-        }
+        unsafe { core::LLVMSetValueName(self.into(), c_name.as_ptr()) }
     }
     /// Returns the type of this value
     pub fn get_type(&self) -> &Type {
@@ -87,7 +94,7 @@ pub enum Predicate {
     GreaterThan,
     GreaterThanOrEqual,
     LessThan,
-    LessThanOrEqual
+    LessThanOrEqual,
 }
 /// An argument that is passed to a function.
 pub struct Arg(PhantomData<[u8]>);
@@ -103,7 +110,7 @@ impl Arg {
     pub fn add_attributes(&self, attrs: &[Attribute]) {
         let mut sum = LLVMAttribute::empty();
         for attr in attrs {
-            let attr:LLVMAttribute = (*attr).into();
+            let attr: LLVMAttribute = (*attr).into();
             sum = sum | attr;
         }
         unsafe { core::LLVMAddAttribute(self.into(), sum.into()) }
@@ -147,9 +154,7 @@ impl GlobalValue {
     }
     /// Returns the linkage type for this global
     pub fn get_linkage(&self) -> Linkage {
-        unsafe {
-            core::LLVMGetLinkage(self.into()).into()
-        }
+        unsafe { core::LLVMGetLinkage(self.into()).into() }
     }
     /// Returns true if this global is a declaration (as opposed to a definition).
     pub fn is_declaration(&self) -> bool {
@@ -168,15 +173,11 @@ to_str!{GlobalVariable, LLVMPrintValueToString}
 impl GlobalVariable {
     /// Set the initial value of the global
     pub fn set_initializer(&self, val: &Value) {
-        unsafe {
-            core::LLVMSetInitializer(self.into(), val.into())
-        }
+        unsafe { core::LLVMSetInitializer(self.into(), val.into()) }
     }
     /// Set the initial value of the global
     pub fn get_initializer(&self) -> Option<&Value> {
-        unsafe {
-            util::ptr_to_null(core::LLVMGetInitializer(self.into()))
-        }
+        unsafe { util::ptr_to_null(core::LLVMGetInitializer(self.into())) }
     }
     /// Set whether this global is a constant.
     pub fn set_constant(&self, is_constant: bool) {
@@ -187,9 +188,7 @@ impl GlobalVariable {
     }
     /// Returns true if this global is a constant.
     pub fn get_constant(&self) -> bool {
-        unsafe {
-            core::LLVMIsGlobalConstant(self.into()) != 0
-        }
+        unsafe { core::LLVMIsGlobalConstant(self.into()) != 0 }
     }
 }
 
@@ -253,7 +252,7 @@ impl Function {
     pub fn add_attributes(&self, attrs: &[Attribute]) {
         let mut sum = LLVMAttribute::empty();
         for attr in attrs {
-            let attr:LLVMAttribute = (*attr).into();
+            let attr: LLVMAttribute = (*attr).into();
             sum = sum | attr;
         }
         unsafe { core::LLVMAddFunctionAttr(self.into(), sum.into()) }
@@ -292,57 +291,57 @@ impl GetContext for Function {
 #[repr(C)]
 pub enum Attribute {
     /// Zero-extended before or after call.
-    ZExt =              0b1,
+    ZExt = 0b1,
     /// Sign-extended before or after call.
-    SExt =              0b10,
+    SExt = 0b10,
     /// Mark the function as not returning.
-    NoReturn =          0b100,
+    NoReturn = 0b100,
     /// Force argument to be passed in register.
-    InReg =             0b1000,
+    InReg = 0b1000,
     /// Hidden pointer to structure to return.
-    StructRet =         0b10000,
+    StructRet = 0b10000,
     /// Function doesn't unwind stack.
-    NoUnwind =          0b100000,
+    NoUnwind = 0b100000,
     /// Consider to not alias after call.
-    NoAlias =           0b1000000,
+    NoAlias = 0b1000000,
     /// Pass structure by value.
-    ByVal =             0b10000000,
+    ByVal = 0b10000000,
     /// Nested function static chain.
-    Nest =              0b100000000,
+    Nest = 0b100000000,
     /// Function doesn't access memory.
-    ReadNone =          0b1000000000,
+    ReadNone = 0b1000000000,
     /// Function only reads from memory.
-    ReadOnly =          0b10000000000,
+    ReadOnly = 0b10000000000,
     /// Never inline this function.
-    NoInline =          0b100000000000,
+    NoInline = 0b100000000000,
     /// Always inline this function.
-    AlwaysInline =      0b1000000000000,
+    AlwaysInline = 0b1000000000000,
     /// Optimize this function for size.
-    OptimizeForSize =   0b10000000000000,
+    OptimizeForSize = 0b10000000000000,
     /// Stack protection.
-    StackProtect =      0b100000000000000,
+    StackProtect = 0b100000000000000,
     /// Stack protection required.
-    StackProtectReq =   0b1000000000000000,
+    StackProtectReq = 0b1000000000000000,
     /// Alignment of parameter (5 bits) stored as log2 of alignment with +1 bias 0 means unaligned (different from align(1)).
-    Alignment =         0b10000000000000000,
+    Alignment = 0b10000000000000000,
     /// Function creates no aliases of pointer.
-    NoCapture =         0b100000000000000000,
+    NoCapture = 0b100000000000000000,
     /// Disable redzone.
-    NoRedZone =         0b1000000000000000000,
+    NoRedZone = 0b1000000000000000000,
     /// Disable implicit float instructions.
-    NoImplicitFloat =   0b10000000000000000000,
+    NoImplicitFloat = 0b10000000000000000000,
     /// Only allows native assembly code in the function.
-    Naked =             0b100000000000000000000,
+    Naked = 0b100000000000000000000,
     /// The source language has marked this function as inline.
-    InlineHint =        0b1000000000000000000000,
+    InlineHint = 0b1000000000000000000000,
     /// Alignment of stack for function (3 bits) stored as log2 of alignment with +1 bias 0 means unaligned (different from alignstack=(1)).
-    StackAlignment =    0b11100000000000000000000000000,
+    StackAlignment = 0b11100000000000000000000000000,
     /// This function returns twice.
-    ReturnsTwice =      0b100000000000000000000000000000,
+    ReturnsTwice = 0b100000000000000000000000000000,
     /// Function must be in unwind table.
-    UWTable =           0b1000000000000000000000000000000,
+    UWTable = 0b1000000000000000000000000000000,
     /// Function is called early/often, so lazy binding isn't effective.
-    NonLazyBind =       0b10000000000000000000000000000000
+    NonLazyBind = 0b10000000000000000000000000000000,
 }
 impl From<LLVMAttribute> for Attribute {
     fn from(attr: LLVMAttribute) -> Attribute {
@@ -360,27 +359,27 @@ impl From<Attribute> for LLVMAttribute {
 #[repr(C)]
 pub enum Linkage {
     /// Default linkage. The global is externally visible and participates in linkage normally.
-    External            = 0,
+    External = 0,
     /// Never emitted to the containing module's object file. Used to allow inlining and/or other optimisations to take place, given knowledge of the definition of the global, which is somewhere outside of the module. Otherwise the same as LinkOnceODR. Only allowed on definitions, not declarations.
     AvailableExternally = 1,
     /// Merged with other globals of the same name during linkage. Unreferenced LinkOnce globals may be discarded.
-    LinkOnceAny         = 2,
+    LinkOnceAny = 2,
     /// Similar to LinkOnceAny, but indicates that it will only be merged with equivalent globals.
-    LinkOnceODR         = 3,
+    LinkOnceODR = 3,
     /// Same merging semantics as LinkOnceAny. Unlike LinkOnce, unreference globals will not be discarded.
-    WeakAny             = 5,
+    WeakAny = 5,
     /// Similar to WeakAny, but indicates that it will only be merged with equivalent globals.
-    WeakODR             = 6,
+    WeakODR = 6,
     /// Only allowed on global array pointers. When two globals with Appending linkage are merged, they are appended together.
-    Appending           = 7,
+    Appending = 7,
     /// Similar to Private, but shows as a local symbol in the object file.
-    Internal            = 8,
+    Internal = 8,
     /// Only directly accessible by objects in the current module. May be renamed as neccessary to avoid collisions, and all references will be updated. Will not show up in the object file's symbol table.
-    Private             = 9,
+    Private = 9,
     /// Weak until linked. If not linked, the output symbol is null, instead of undefined.
-    ExternalWeak        = 12,
+    ExternalWeak = 12,
     /// Similar to Weak, but may not have an explicit section, must have a zero initializer, and may not be marked constant. Cannot be used on functions or aliases.
-    Common              = 14,
+    Common = 14,
 }
 impl From<LLVMLinkage> for Linkage {
     fn from(attr: LLVMLinkage) -> Linkage {

@@ -1,5 +1,5 @@
 use libc::c_void;
-use ffi::object::{self,  LLVMObjectFileRef, LLVMSymbolIteratorRef};
+use ffi::object::{self, LLVMObjectFileRef, LLVMSymbolIteratorRef};
 use cbox::CBox;
 use std::fmt;
 use std::iter::Iterator;
@@ -10,7 +10,7 @@ use util;
 
 /// An external object file that has been parsed by LLVM.
 pub struct ObjectFile {
-    obj: LLVMObjectFileRef
+    obj: LLVMObjectFileRef,
 }
 native_ref!(ObjectFile, obj: LLVMObjectFileRef);
 impl ObjectFile {
@@ -30,13 +30,13 @@ impl ObjectFile {
     pub fn symbols(&self) -> Symbols {
         Symbols {
             iter: unsafe { object::LLVMGetSymbols(self.obj) },
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 }
 pub struct Symbols<'a> {
     iter: LLVMSymbolIteratorRef,
-    marker: PhantomData<&'a ()>
+    marker: PhantomData<&'a ()>,
 }
 impl<'a> Iterator for Symbols<'a> {
     type Item = Symbol<'a>;
@@ -48,16 +48,14 @@ impl<'a> Iterator for Symbols<'a> {
             Some(Symbol {
                 name: name,
                 address: mem::transmute(address),
-                size: size
+                size: size,
             })
         }
     }
 }
 impl<'a> Drop for Symbols<'a> {
     fn drop(&mut self) {
-        unsafe {
-            object::LLVMDisposeSymbolIterator(self.iter)
-        }
+        unsafe { object::LLVMDisposeSymbolIterator(self.iter) }
     }
 }
 pub struct Symbol<'a> {
@@ -65,7 +63,7 @@ pub struct Symbol<'a> {
     pub name: &'a str,
     /// The address that this symbol is at.
     pub address: *const c_void,
-    pub size: usize
+    pub size: usize,
 }
 impl<'a> Copy for Symbol<'a> {}
 impl<'a> Clone for Symbol<'a> {

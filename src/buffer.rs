@@ -26,13 +26,18 @@ impl MemoryBuffer {
 
     pub fn new_from_str(buf: &str, name: Option<&str>) -> Result<CBox<MemoryBuffer>, CBox<str>> {
         unsafe {
-            let in_name = name
-                .map(|n| n.as_bytes().to_vec())
-                .map(|mut v| { v.push(0); CString::from_vec_unchecked(v) })
+            let in_name = name.map(|n| n.as_bytes().to_vec())
+                .map(|mut v| {
+                    v.push(0);
+                    CString::from_vec_unchecked(v)
+                })
                 .unwrap_or(CString::default());
 
             let out = core::LLVMCreateMemoryBufferWithMemoryRangeCopy(
-                buf.as_ptr() as *const c_char, buf.len() as size_t, in_name.as_ptr());
+                buf.as_ptr() as *const c_char,
+                buf.len() as size_t,
+                in_name.as_ptr(),
+            );
             Ok(CBox::new(out))
         }
     }
@@ -44,11 +49,11 @@ impl Deref for MemoryBuffer {
             #[allow(dead_code)]
             struct StrSlice {
                 data: *const c_char,
-                len: usize
+                len: usize,
             }
             mem::transmute(StrSlice {
                 data: core::LLVMGetBufferStart(self.into()),
-                len: core::LLVMGetBufferSize(self.into()) as usize
+                len: core::LLVMGetBufferSize(self.into()) as usize,
             })
         }
     }

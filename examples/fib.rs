@@ -15,10 +15,7 @@ fn main() {
     let zero = 0u64.compile(&ctx);
     let one = 1u64.compile(&ctx);
     builder.position_at_end(entry);
-    builder.build_switch(value, default, &[
-        (zero, on_zero),
-        (one, on_one)
-    ]);
+    builder.build_switch(value, default, &[(zero, on_zero), (one, on_one)]);
     builder.position_at_end(on_zero);
     builder.build_ret(zero);
     builder.position_at_end(on_one);
@@ -32,8 +29,8 @@ fn main() {
     builder.build_ret(builder.build_add(fa, fb));
     println!("{:?}", module);
     module.verify().unwrap();
-    let ee = JitEngine::new(&module, JitOptions {opt_level: 0}).unwrap();
-    ee.with_function(func, |fib: extern fn(u64) -> u64| {
+    let ee = JitEngine::new(&module, JitOptions { opt_level: 0 }).unwrap();
+    ee.with_function(func, |fib: extern "C" fn(u64) -> u64| {
         for i in 0..10 {
             println!("fib {} = {}", i, fib(i))
         }

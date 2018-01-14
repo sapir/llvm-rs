@@ -14,8 +14,8 @@ fn main() {
     let value = builder.build_add(a, b);
     builder.build_ret(value);
     module.verify().unwrap();
-    let ee = JitEngine::new(&module, JitOptions {opt_level: 3}).unwrap();
-    ee.with_function(func, |add:extern fn((f64, f64)) -> f64| {
+    let ee = JitEngine::new(&module, JitOptions { opt_level: 3 }).unwrap();
+    ee.with_function(func, |add: extern "C" fn((f64, f64)) -> f64| {
         println!("{} + {} = {}", 1., 2., add((1., 2.)));
     });
 }

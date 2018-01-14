@@ -32,7 +32,10 @@ to_str!{Type, LLVMPrintTypeToString}
 impl Type {
     #[inline(always)]
     /// Get the type given as an LLVM type descriptor in the context given.
-    pub fn get<'a, T>(context:&'a Context) -> &'a Type where T:Compile<'a> {
+    pub fn get<'a, T>(context: &'a Context) -> &'a Type
+    where
+        T: Compile<'a>,
+    {
         T::get_type(context)
     }
     /// Returns true if the size of the type is known at compile-time.
@@ -75,9 +78,9 @@ impl Type {
     /// Returns true if this type is any floating-point number.
     pub fn is_float(&self) -> bool {
         let kind = unsafe { core::LLVMGetTypeKind(self.into()) } as c_uint;
-        kind == LLVMTypeKind::LLVMHalfTypeKind as c_uint ||
-        kind == LLVMTypeKind::LLVMFloatTypeKind as c_uint ||
-        kind == LLVMTypeKind::LLVMDoubleTypeKind as c_uint
+        kind == LLVMTypeKind::LLVMHalfTypeKind as c_uint
+            || kind == LLVMTypeKind::LLVMFloatTypeKind as c_uint
+            || kind == LLVMTypeKind::LLVMDoubleTypeKind as c_uint
     }
     /// Returns the size of the type in bytes.
     pub fn get_size(&self, target: &TargetData) -> usize {
@@ -94,13 +97,30 @@ sub!{StructType, LLVMStructTypeKind}
 impl StructType {
     /// Make a new struct with the given fields and packed representation.
     pub fn new<'a>(context: &'a Context, fields: &[&'a Type], packed: bool) -> &'a StructType {
-        unsafe { core::LLVMStructTypeInContext(context.into(), fields.as_ptr() as *mut LLVMTypeRef, fields.len() as c_uint, packed as c_int) }.into()
+        unsafe {
+            core::LLVMStructTypeInContext(
+                context.into(),
+                fields.as_ptr() as *mut LLVMTypeRef,
+                fields.len() as c_uint,
+                packed as c_int,
+            )
+        }.into()
     }
     /// Make a new named struct with the given fields and packed representation.
-    pub fn new_named<'a>(context: &'a Context, name: &str, fields: &[&'a Type], packed: bool) -> &'a StructType {
+    pub fn new_named<'a>(
+        context: &'a Context,
+        name: &str,
+        fields: &[&'a Type],
+        packed: bool,
+    ) -> &'a StructType {
         util::with_cstr(name, |name| unsafe {
             let ty = core::LLVMStructCreateNamed(context.into(), name);
-            core::LLVMStructSetBody(ty, fields.as_ptr() as *mut LLVMTypeRef, fields.len() as c_uint, packed as c_int);
+            core::LLVMStructSetBody(
+                ty,
+                fields.as_ptr() as *mut LLVMTypeRef,
+                fields.len() as c_uint,
+                packed as c_int,
+            );
             ty.into()
         })
     }
@@ -119,7 +139,12 @@ impl StructType {
     pub fn set_elements<'a>(&self, fields: &[&'a Type], packed: bool) -> Result<(), ()> {
         unsafe {
             if core::LLVMIsOpaqueStruct(self.into()) != 0 {
-                core::LLVMStructSetBody(self.into(), fields.as_ptr() as *mut LLVMTypeRef, fields.len() as c_uint, packed as c_int);
+                core::LLVMStructSetBody(
+                    self.into(),
+                    fields.as_ptr() as *mut LLVMTypeRef,
+                    fields.len() as c_uint,
+                    packed as c_int,
+                );
                 Ok(())
             } else {
                 Err(())
@@ -130,7 +155,7 @@ impl StructType {
     pub fn get_elements(&self) -> Vec<&Type> {
         unsafe {
             let size = core::LLVMCountStructElementTypes(self.into());
-            let mut els:Vec<_> = (0..size).map(|_| mem::uninitialized()).collect();
+            let mut els: Vec<_> = (0..size).map(|_| mem::uninitialized()).collect();
             core::LLVMGetStructElementTypes(self.into(), els.as_mut_ptr() as *mut LLVMTypeRef);
             els
         }
@@ -157,7 +182,14 @@ unsafe impl Sub<Type> for FunctionType {
 impl FunctionType {
     /// Make a new function signature with the return type and arguments given.
     pub fn new<'a>(ret: &'a Type, args: &[&'a Type]) -> &'a FunctionType {
-        unsafe { core::LLVMFunctionType(ret.into(), args.as_ptr() as *mut LLVMTypeRef, args.len() as c_uint, 0) }.into()
+        unsafe {
+            core::LLVMFunctionType(
+                ret.into(),
+                args.as_ptr() as *mut LLVMTypeRef,
+                args.len() as c_uint,
+                0,
+            )
+        }.into()
     }
     /// Returns the number of parameters this signature takes.
     pub fn num_params(&self) -> usize {
@@ -167,7 +199,7 @@ impl FunctionType {
     pub fn get_params(&self) -> Vec<&Type> {
         unsafe {
             let count = core::LLVMCountParamTypes(self.into());
-            let mut types:Vec<_> = (0..count).map(|_| mem::uninitialized()).collect();
+            let mut types: Vec<_> = (0..count).map(|_| mem::uninitialized()).collect();
             core::LLVMGetParamTypes(self.into(), types.as_mut_ptr() as *mut LLVMTypeRef);
             types
         }
@@ -208,7 +240,7 @@ impl IntegerType {
     }
     /// Returns how long an integer of this type is, in bits.
     pub fn get_width(&self) -> usize {
-        unsafe { core::LLVMGetIntTypeWidth (self.into()) as usize }
+        unsafe { core::LLVMGetIntTypeWidth(self.into()) as usize }
     }
 }
 
