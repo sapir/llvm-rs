@@ -97,6 +97,7 @@ pub enum Predicate {
     LessThanOrEqual,
 }
 /// An argument that is passed to a function.
+#[derive(Clone)]
 pub struct Arg(PhantomData<[u8]>);
 native_ref!(&Arg = LLVMValueRef);
 sub!{Arg, LLVMIsAArgument}
