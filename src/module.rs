@@ -76,15 +76,14 @@ impl Module {
         })
     }
     /// Parse this bitcode file into a module, or return an error string.
-    pub fn parse_bitcode<'a>(context: &'a Context, path: &str) -> Result<CSemiBox<'a, Module>, CBox<str>> {
+    pub fn parse_bitcode<'a>(context: &'a Context, path: &str) ->Option<CSemiBox<'a, Module>> {
         unsafe {
             let mut out = mem::uninitialized();
-            let mut err = mem::uninitialized();
-            let buf = try!(MemoryBuffer::new_from_file(path));
-            if reader::LLVMParseBitcodeInContext(context.into(), buf.as_ptr(), &mut out, &mut err) == 1 {
-                Err(CBox::new(err))
+            let buf = MemoryBuffer::new_from_file(path).unwrap();
+            if reader::LLVMParseBitcodeInContext2(context.into(), buf.as_ptr(), &mut out) == 1 {
+                None
             } else {
-                Ok(CSemiBox::new(out))
+                Some(CSemiBox::new(out))
             }
         }
     }

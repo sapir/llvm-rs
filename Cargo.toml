@@ -21,4 +21,4 @@ lto = true
 [dependencies]
 cbox = "0.*"
 libc = "0.*"
-llvm-sys = { git = "https://github.com/RReverser/llvm-sys.rs" }
+llvm-sys = {git ="https://github.com/Lapz/llvm-sys.rs"}
