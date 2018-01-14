@@ -36,6 +36,7 @@ impl Deref for $this {
 }
 
 /// A typed value that can be used as an operand in instructions.
+#[derive(Clone)]
 pub struct Value(PhantomData<[u8]>);
 native_ref!(&Value = LLVMValueRef);
 to_str!{Value, LLVMPrintValueToString}
