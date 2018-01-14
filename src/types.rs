@@ -284,3 +284,21 @@ impl ArrayType {
         unsafe { core::LLVMGetArrayLength(self.into()) as usize }
     }
 }
+
+
+/// A Void Type
+pub struct VoidType(PhantomData<[u8]>);
+native_ref!{&VoidType = LLVMTypeRef}
+get_context!{VoidType, LLVMGetTypeContext}
+to_str!{VoidType, LLVMPrintTypeToString}
+sub!{VoidType, LLVMVoidTypeKind}
+impl VoidType {
+    /// Make a void type
+    pub fn new(context: &Context) -> &VoidType {
+        unsafe { core::LLVMVoidTypeInContext(context.into()) }.into()
+    }
+     /// Returns the size of this type in bits.
+    pub fn get_length(&self) -> usize {
+        unsafe { core::LLVMGetArrayLength(self.into()) as usize }
+    }
+}
