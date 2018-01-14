@@ -150,7 +150,7 @@ compile_tuple!{A = a, B = b, C = c, D = d, E = e}
 compile_tuple!{A = a, B = b, C = c, D = d, E = e, F = f}
 compile_tuple!{A = a, B = b, C = c, D = d, E = e, F = f, G = g}
 
-#[macro_export] macro_rules! compile_array(
+macro_rules! compile_array(
     ($ty:ty, $num:expr) => (
         impl<'a, T> Compile<'a> for $ty where T: Copy + Compile<'a> + 'a {
             fn compile(self, context: &'a Context) -> &'a Value {
