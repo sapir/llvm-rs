@@ -40,6 +40,7 @@ macro_rules! compile_int(
         compile_int!{$uty, $sty, ctx => core::$func(ctx)}
     );
 );
+
 impl<'a> Compile<'a> for bool {
     fn compile(self, context: &'a Context) -> &'a Value {
         unsafe { core::LLVMConstInt(Self::get_type(context).into(), self as c_ulonglong, 0) }.into()
@@ -122,17 +123,19 @@ impl<'a, 'b> Compile<'a> for &'b [u8] {
         StructType::new(ctx, &[usize_t, usize_t], false)
     }
 }
+
 compile_int!{u8, i8, LLVMInt8TypeInContext}
 compile_int!{u16, i16, LLVMInt16TypeInContext}
 compile_int!{u32, i32, LLVMInt32TypeInContext}
 compile_int!{u64, i64, LLVMInt64TypeInContext}
 compile_int!{usize, isize, ctx => core::LLVMIntTypeInContext(ctx, mem::size_of::<isize>() as c_uint * 8)}
+
 impl<'a> Compile<'a> for () {
     fn compile(self, context: &'a Context) -> &'a Value {
         unsafe { core::LLVMConstNull(Self::get_type(context).into()) }.into()
     }
-    fn get_type(context: &'a Context) -> &'a Type {
-        unsafe { core::LLVMVoidTypeInContext(context.into()) }.into()
+    fn get_type(_: &'a Context) -> &'a Type {
+        unsafe { core::LLVMVoidType() }.into()
     }
 }
 
@@ -149,6 +152,7 @@ macro_rules! compile_tuple(
         }
     )
 );
+
 compile_tuple!{A = a, B = b}
 compile_tuple!{A = a, B = b, C = c}
 compile_tuple!{A = a, B = b, C = c, D = d}
