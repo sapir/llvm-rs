@@ -52,6 +52,13 @@ impl Value {
             )
         }.into()
     }
+
+    /// Create a new null value from any type
+    pub fn new_null<'a>(ty:&'a Type) -> &'a Value {
+        unsafe {
+            core::LLVMConstNull(ty.into()).into()
+        }
+    }
     /// Create a new constant vector from the values given.
     pub fn new_vector<'a>(vals: &[&'a Value]) -> &'a Value {
         unsafe {

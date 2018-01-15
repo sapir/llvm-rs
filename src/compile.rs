@@ -134,8 +134,8 @@ impl<'a> Compile<'a> for () {
     fn compile(self, context: &'a Context) -> &'a Value {
         unsafe { core::LLVMConstNull(Self::get_type(context).into()) }.into()
     }
-    fn get_type(_: &'a Context) -> &'a Type {
-        unsafe { core::LLVMVoidType() }.into()
+    fn get_type(context: &'a Context) -> &'a Type {
+        unsafe { core::LLVMVoidTypeInContext(context.into()) }.into()
     }
 }
 
