@@ -251,6 +251,7 @@ impl Builder {
         }
         phi_node.into()
     }
+
     un_op!{build_load, LLVMBuildLoad}
     un_op!{build_neg, LLVMBuildNeg}
     un_op!{build_not, LLVMBuildNot}

@@ -6,7 +6,7 @@
 
 extern crate cbox;
 extern crate libc;
-extern crate llvm_sys as ffi;
+pub extern crate llvm_sys as ffi;
 
 #[macro_use]
 mod macros;
@@ -22,6 +22,7 @@ mod target;
 pub mod types;
 pub mod value;
 mod util;
+
 
 pub use cbox::{CBox, CSemiBox};
 pub use builder::Builder;
