@@ -6,6 +6,7 @@ use std::mem;
 use std::ops::Deref;
 use value::{Function, Value};
 use util::{self, Sub};
+use builder::Builder;
 
 /// A container of instructions that execute sequentially.
 pub struct BasicBlock(PhantomData<[u8]>);
@@ -28,6 +29,11 @@ impl BasicBlock {
     /// Return the enclosing method, or `None` if it is not attached to a method.
     pub fn get_parent(&self) -> Option<&Function> {
         unsafe { util::ptr_to_null(core::LLVMGetBasicBlockParent(self.into())) }
+    }
+
+    /// Get the Insert Block
+    pub fn get_insert_block<'a>(builder:&'a Builder) -> &'a BasicBlock {
+        unsafe{ core::LLVMGetInsertBlock(builder.into()) }.into()
     }
     /// Return the terminator instruction for this basic block.
     pub fn get_terminator(&self) -> Option<&Value> {
