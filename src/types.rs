@@ -285,7 +285,6 @@ impl ArrayType {
     }
 }
 
-
 /// A Void Type
 pub struct VoidType(PhantomData<[u8]>);
 native_ref!{&VoidType = LLVMTypeRef}
@@ -297,7 +296,7 @@ impl VoidType {
     pub fn new(context: &Context) -> &VoidType {
         unsafe { core::LLVMVoidTypeInContext(context.into()) }.into()
     }
-     /// Returns the size of this type in bits.
+    /// Returns the size of this type in bits.
     pub fn get_length(&self) -> usize {
         unsafe { core::LLVMGetArrayLength(self.into()) as usize }
     }
@@ -324,7 +323,7 @@ to_str!{DoubleType, LLVMPrintTypeToString}
 sub!{DoubleType, LLVMDoubleTypeKind}
 impl DoubleType {
     /// Make a new Float type that will be the size of the given number of bits.
-    pub fn new(context: &Context) -> &DoubleType{
+    pub fn new(context: &Context) -> &DoubleType {
         unsafe { core::LLVMDoubleTypeInContext(context.into()) }.into()
     }
 }

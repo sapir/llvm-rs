@@ -32,8 +32,8 @@ impl BasicBlock {
     }
 
     /// Get the Insert Block
-    pub fn get_insert_block<'a>(builder:&'a Builder) -> &'a BasicBlock {
-        unsafe{ core::LLVMGetInsertBlock(builder.into()) }.into()
+    pub fn get_insert_block<'a>(builder: &'a Builder) -> &'a BasicBlock {
+        unsafe { core::LLVMGetInsertBlock(builder.into()) }.into()
     }
     /// Return the terminator instruction for this basic block.
     pub fn get_terminator(&self) -> Option<&Value> {

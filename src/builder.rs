@@ -92,6 +92,10 @@ impl Builder {
     pub fn build_br(&self, dest: &BasicBlock) -> &Value {
         unsafe { core::LLVMBuildBr(self.into(), dest.into()).into() }
     }
+
+    pub fn get_insert_block<'a>(&self) -> &'a BasicBlock {
+        unsafe { core::LLVMGetInsertBlock(self.into()) }.into()
+    }
     /// Build an instruction that branches to `if_block` if `cond` evaluates to true, and `else_block` otherwise.
     pub fn build_cond_br(
         &self,
