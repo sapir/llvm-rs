@@ -1,3 +1,4 @@
+use libc::{c_int};
 use ffi::{core, LLVMPassManager};
 use ffi::prelude::LLVMPassManagerRef;
 use cbox::CSemiBox;
@@ -42,7 +43,7 @@ macro_rules! add_pass {
 }
 
 // Scalar transformations
-add_pass!{add_dce,LLVMAddAggressiveDCEPass}
+add_pass!{add_agressive_dce,LLVMAddAggressiveDCEPass}
 add_pass!{add_alingmnet_from_assum,LLVMAddAlignmentFromAssumptionsPass}
 add_pass!{add_basic_alias_analysis,LLVMAddBasicAliasAnalysisPass}
 add_pass!{add_bit_tacking_dce,LLVMAddBitTrackingDCEPass}
@@ -98,3 +99,73 @@ add_pass!{add_ipsccp,LLVMAddIPSCCPPass}
 add_pass!{add_prune_eh,LLVMAddPruneEHPass}
 add_pass!{add_strip_dead_prototypes,LLVMAddStripDeadPrototypesPass}
 add_pass!{add_strip_symbols,LLVMAddStripSymbolsPass}
+
+
+use ffi::transforms::pass_manager_builder::*;
+
+pub struct PassManagerBuilder(PhantomData<[u8]>);
+native_ref!{&PassManagerBuilder = LLVMPassManagerBuilderRef}
+dispose!{PassManagerBuilder,LLVMOpaquePassManagerBuilder,LLVMPassManagerBuilderDispose}
+
+
+impl <'a> PassManagerBuilder {
+    pub fn new() -> CSemiBox<'a,PassManagerBuilder> {
+        unsafe {LLVMPassManagerBuilderCreate()}.into()
+    }
+
+    pub fn set_opt(&self,level:u32) {
+        unsafe {LLVMPassManagerBuilderSetOptLevel(self.into(),level.into())};
+    }
+
+    pub fn set_size(&self,level:u32) {
+        unsafe {LLVMPassManagerBuilderSetOptLevel(self.into(),level.into())};
+    }
+
+    pub fn set_disable_simplify_lib_calls(&self,opt:bool) {
+       unsafe{ LLVMPassManagerBuilderSetDisableSimplifyLibCalls(self.into(),opt as c_int)}
+    }
+
+    pub fn disable_unit_at_a_time(&self,opt:bool) {
+        unsafe {
+            LLVMPassManagerBuilderSetDisableUnitAtATime(self.into(),opt as c_int)
+        }
+    }
+
+    pub fn disable_unroll_loop(&self,opt:bool) {
+        unsafe {
+            LLVMPassManagerBuilderSetDisableUnrollLoops(self.into(),opt as c_int)
+        }
+    }
+
+    pub fn populate_lto_pass_manger(&self,pass_manager:&PassManager,internalize:bool,run_inliner:bool) {
+        unsafe {
+            LLVMPassManagerBuilderPopulateLTOPassManager(
+                self.into(),
+                pass_manager.into(),
+                internalize as c_int,
+                run_inliner as c_int
+                )
+        }
+    }
+
+    pub fn inline_with_threshold(&self,threshold:u32) {
+        unsafe {
+            LLVMPassManagerBuilderUseInlinerWithThreshold(self.into(),threshold)
+        }
+    }
+
+    pub fn populate_module_pass_manager(&self,pass_manager:&PassManager) {
+        unsafe {
+            LLVMPassManagerBuilderPopulateModulePassManager(self.into(),pass_manager.into())
+        }
+    }
+
+    
+
+    pub fn populate_function_pass_manager(&self,pass_manager:&PassManager) {
+        unsafe {
+            LLVMPassManagerBuilderPopulateFunctionPassManager(self.into(),pass_manager.into())
+        }
+    }
+
+}
