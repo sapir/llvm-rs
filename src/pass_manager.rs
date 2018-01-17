@@ -7,6 +7,7 @@ use module::Module;
 use ffi::transforms::scalar::*;
 use ffi::transforms::vectorize::*;
 use ffi::transforms::ipo::*;
+use value::Value;
 
 pub struct PassManager(PhantomData<[u8]>);
 native_ref!{&PassManager = LLVMPassManagerRef}
@@ -21,6 +22,13 @@ impl<'a> PassManager {
     /// Create a new function pass manager for a given module
     pub fn new_func_pass(module: &'a Module) -> &PassManager {
         unsafe { core::LLVMCreateFunctionPassManagerForModule(module.into()) }.into()
+    }
+    
+    // Run the function pass manager
+    pub fn run_func_pass(&self,f:&'a Value) -> bool {
+        unsafe {
+            core::LLVMRunFunctionPassManager(self.into(),f.into()) != 0
+        }
     }
 
     pub fn init_func_pass(&self) {
