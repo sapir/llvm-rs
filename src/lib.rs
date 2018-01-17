@@ -22,6 +22,7 @@ mod target;
 pub mod types;
 pub mod value;
 mod util;
+mod passmanager;
 
 pub use cbox::{CBox, CSemiBox};
 pub use builder::Builder;

@@ -82,6 +82,7 @@ impl Target {
                 as *mut c_char)
         }
     }
+
     /// Returns true if this target has an assembly generation backend implemented.
     pub fn has_asm_backend(&self) -> bool {
         unsafe { target_machine::LLVMTargetHasAsmBackend(self.into()) != 0 }
