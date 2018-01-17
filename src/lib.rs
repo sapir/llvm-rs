@@ -38,7 +38,7 @@ pub use types::*;
 pub use value::{Alias, Arg, Attribute, Function, GlobalValue, GlobalVariable, Linkage, Predicate,
                 Value};
 pub use util::Sub;
-pub use pass_manager::{PassManger,PassMangerBuilder};
+pub use pass_manager::{PassManager,PassManagerBuilder};
 
 pub mod prelude {
 
