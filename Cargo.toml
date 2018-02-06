@@ -3,7 +3,6 @@
 exclude = [ ".gitignore", ".travis.yml" ]
 authors = [ "Tom Bebbington <tophattedcoder@gmail.com>" ]
 description = "A wrapper for LLVM, a powerful library and toolkit for compilers"
-documentation = "https://tombebbington.github.io/llvm-rs/llvm/index.html"
 keywords = [ "compile", "compiler", "jit", "interpreter" ]
 license = "BSD-3-Clause"
 name = "llvm-alt"
@@ -18,7 +17,14 @@ name = "llvm"
 [profile.release]
 lto = true
 
+
 [dependencies]
 cbox = "0.*"
 libc = "0.*"
-llvm-sys = {git ="https://github.com/Lapz/llvm-sys.rs"}
+llvm-sys = {git ="https://github.com/tari/llvm-sys.rs/",branch ="llvm-4.0"}
+
+[features]
+
+default = []
+
+expose_bindings = []

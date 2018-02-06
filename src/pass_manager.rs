@@ -1,4 +1,4 @@
-use libc::{c_int};
+use libc::c_int;
 use ffi::{core, LLVMPassManager};
 use ffi::prelude::LLVMPassManagerRef;
 use cbox::CSemiBox;
@@ -8,7 +8,11 @@ use ffi::transforms::scalar::*;
 use ffi::transforms::vectorize::*;
 use ffi::transforms::ipo::*;
 use value::Value;
+use ffi::LLVMPassRegistry;
+use ffi::core::LLVMGetGlobalPassRegistry;
+use ffi::initialization::*;
 
+/// The struct responsible for setting up optimization sequences
 pub struct PassManager(PhantomData<[u8]>);
 native_ref!{&PassManager = LLVMPassManagerRef}
 dispose!{PassManager,LLVMPassManager,core::LLVMDisposePassManager}
@@ -19,16 +23,15 @@ impl<'a> PassManager {
         unsafe { core::LLVMCreatePassManager() }.into()
     }
 
-    /// Create a new function pass manager for a given module
-    pub fn new_func_pass(module: &'a Module) -> &PassManager {
+    /// Create a new function pass manager for a given module. It runs the optimizations
+    /// on each function immediatly as it is generated
+    pub fn new_func_pass(module: &'a Module) -> CSemiBox<'a, PassManager> {
         unsafe { core::LLVMCreateFunctionPassManagerForModule(module.into()) }.into()
     }
-    
+
     // Run the function pass manager
-    pub fn run_func_pass(&self,f:&'a Value) -> bool {
-        unsafe {
-            core::LLVMRunFunctionPassManager(self.into(),f.into()) != 0
-        }
+    pub fn run_func_pass(&self, f: &'a Value) -> bool {
+        unsafe { core::LLVMRunFunctionPassManager(self.into(), f.into()) != 0 }
     }
 
     pub fn init_func_pass(&self) {
@@ -43,8 +46,9 @@ impl<'a> PassManager {
 macro_rules! add_pass {
     ($name:ident, $passname:expr) => {
         impl <'a> PassManager {
-            pub fn $name(&self) {
+            pub fn $name(&self) -> &PassManager {
                 unsafe {$passname(self.into())};
+                self
             }
         }
     };
@@ -84,7 +88,7 @@ add_pass!{add_scalar_repl_aggregates_ssa,LLVMAddScalarReplAggregatesPassSSA}
 add_pass!{add_scalarizer,LLVMAddScalarizerPass}
 add_pass!{add_scoped_no_alias_aa,LLVMAddScopedNoAliasAAPass}
 add_pass!{add_simplify_lib_calls,LLVMAddSimplifyLibCallsPass}
-add_pass!{add_add_tail_call_elimination,LLVMAddTailCallEliminationPass}
+add_pass!{add_tail_call_elimination,LLVMAddTailCallEliminationPass}
 add_pass!{add_type_based_alias_nalysis,LLVMAddTypeBasedAliasAnalysisPass}
 add_pass!{add_verifier,LLVMAddVerifierPass}
 
@@ -108,72 +112,167 @@ add_pass!{add_prune_eh,LLVMAddPruneEHPass}
 add_pass!{add_strip_dead_prototypes,LLVMAddStripDeadPrototypesPass}
 add_pass!{add_strip_symbols,LLVMAddStripSymbolsPass}
 
-
 use ffi::transforms::pass_manager_builder::*;
 
+/// Used to custimize a pass sequence in various ways
+/// For more information go to [llvm](http://llvm.org/doxygen/classllvm_1_1PassManagerBuilder.html)
 pub struct PassManagerBuilder(PhantomData<[u8]>);
 native_ref!{&PassManagerBuilder = LLVMPassManagerBuilderRef}
 dispose!{PassManagerBuilder,LLVMOpaquePassManagerBuilder,LLVMPassManagerBuilderDispose}
 
-
-impl <'a> PassManagerBuilder {
-    pub fn new() -> CSemiBox<'a,PassManagerBuilder> {
-        unsafe {LLVMPassManagerBuilderCreate()}.into()
+impl<'a> PassManagerBuilder {
+    /// Create a new `PassManagerBuilder`
+    pub fn new() -> CSemiBox<'a, PassManagerBuilder> {
+        unsafe { LLVMPassManagerBuilderCreate() }.into()
     }
 
-    pub fn set_opt(&self,level:u32) {
-        unsafe {LLVMPassManagerBuilderSetOptLevel(self.into(),level.into())};
+    /// Specify the basic optimization level
+    pub fn set_opt(&self, level: u32) {
+        unsafe { LLVMPassManagerBuilderSetOptLevel(self.into(), level.into()) };
     }
 
-    pub fn set_size(&self,level:u32) {
-        unsafe {LLVMPassManagerBuilderSetOptLevel(self.into(),level.into())};
+    /// How much we're optimizing for size
+    pub fn set_size(&self, level: u32) {
+        unsafe { LLVMPassManagerBuilderSetOptLevel(self.into(), level.into()) };
     }
 
-    pub fn set_disable_simplify_lib_calls(&self,opt:bool) {
-       unsafe{ LLVMPassManagerBuilderSetDisableSimplifyLibCalls(self.into(),opt as c_int)}
+    ///
+    pub fn set_disable_simplify_lib_calls(&self, opt: bool) {
+        unsafe { LLVMPassManagerBuilderSetDisableSimplifyLibCalls(self.into(), opt as c_int) }
     }
 
-    pub fn disable_unit_at_a_time(&self,opt:bool) {
-        unsafe {
-            LLVMPassManagerBuilderSetDisableUnitAtATime(self.into(),opt as c_int)
-        }
+    pub fn disable_unit_at_a_time(&self, opt: bool) {
+        unsafe { LLVMPassManagerBuilderSetDisableUnitAtATime(self.into(), opt as c_int) }
     }
 
-    pub fn disable_unroll_loop(&self,opt:bool) {
-        unsafe {
-            LLVMPassManagerBuilderSetDisableUnrollLoops(self.into(),opt as c_int)
-        }
+    pub fn disable_unroll_loop(&self, opt: bool) {
+        unsafe { LLVMPassManagerBuilderSetDisableUnrollLoops(self.into(), opt as c_int) }
     }
 
-    pub fn populate_lto_pass_manger(&self,pass_manager:&PassManager,internalize:bool,run_inliner:bool) {
+    pub fn populate_lto_pass_manger(
+        &self,
+        pass_manager: &PassManager,
+        internalize: bool,
+        run_inliner: bool,
+    ) {
         unsafe {
             LLVMPassManagerBuilderPopulateLTOPassManager(
                 self.into(),
                 pass_manager.into(),
                 internalize as c_int,
-                run_inliner as c_int
-                )
+                run_inliner as c_int,
+            )
         }
     }
 
-    pub fn inline_with_threshold(&self,threshold:u32) {
+    pub fn inline_with_threshold(&self, threshold: u32) {
+        unsafe { LLVMPassManagerBuilderUseInlinerWithThreshold(self.into(), threshold) }
+    }
+
+    pub fn populate_module_pass_manager(&self, pass_manager: &PassManager) {
+        unsafe { LLVMPassManagerBuilderPopulateModulePassManager(self.into(), pass_manager.into()) }
+    }
+
+    pub fn populate_function_pass_manager(&self, pass_manager: &PassManager) {
         unsafe {
-            LLVMPassManagerBuilderUseInlinerWithThreshold(self.into(),threshold)
+            LLVMPassManagerBuilderPopulateFunctionPassManager(self.into(), pass_manager.into())
         }
     }
+}
 
-    pub fn populate_module_pass_manager(&self,pass_manager:&PassManager) {
-        unsafe {
-            LLVMPassManagerBuilderPopulateModulePassManager(self.into(),pass_manager.into())
-        }
+/// This class manages the registration and intitialization of
+/// the pass subsystem as application startup, and assists the PassManager
+/// in resolving pass dependencies
+pub struct PassRegistry(*mut LLVMPassRegistry);
+
+// Waiting on stabilisation of #13231
+//impl !Send for PassRegistry {}
+//impl !Sync for PassRegistry{}
+
+impl PassRegistry {
+    pub fn new() -> Self {
+        PassRegistry(unsafe { LLVMGetGlobalPassRegistry() })
     }
 
-    
-
-    pub fn populate_function_pass_manager(&self,pass_manager:&PassManager) {
-        unsafe {
-            LLVMPassManagerBuilderPopulateFunctionPassManager(self.into(),pass_manager.into())
-        }
+    pub fn init_all(&self) {
+        self.init_analyis()
+            .init_codegen()
+            .init_core()
+            .init_ipa()
+            .init_ipo()
+            .init_inst_combine()
+            .init_instrumentation()
+            .init_scalar_opts()
+            .init_target()
+            .init_transfrom_utils()
+            .init_vectorization();
     }
 
+    fn get(&self) -> *mut LLVMPassRegistry {
+        self.0
+    }
+
+    pub fn init_analyis(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeAnalysis(self.get()) }
+        self
+    }
+
+    pub fn init_codegen(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeCodeGen(self.get()) }
+
+        self
+    }
+
+    pub fn init_core(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeCore(self.get()) }
+
+        self
+    }
+
+    pub fn init_ipa(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeIPA(self.get()) }
+
+        self
+    }
+
+    pub fn init_ipo(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeIPO(self.get()) }
+
+        self
+    }
+
+    pub fn init_inst_combine(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeInstCombine(self.get()) }
+
+        self
+    }
+
+    pub fn init_instrumentation(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeInstrumentation(self.get()) }
+
+        self
+    }
+
+    pub fn init_scalar_opts(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeScalarOpts(self.get()) }
+
+        self
+    }
+
+    pub fn init_target(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeTarget(self.get()) }
+
+        self
+    }
+
+    pub fn init_transfrom_utils(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeTransformUtils(self.get()) }
+
+        self
+    }
+
+    pub fn init_vectorization(&self) -> &PassRegistry {
+        unsafe { LLVMInitializeVectorization(self.get()) }
+        self
+    }
 }

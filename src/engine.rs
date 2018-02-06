@@ -148,17 +148,20 @@ impl<'a> JitEngine {
     /// This is marked as unsafe because the types given as arguments and return could be different
     /// from their internal representation.
     pub unsafe fn get_function<A, R>(&self, function: &'a Function) -> extern "C" fn(A) -> R {
-        let ptr: &u8 = self.get_global(function);
+        let ptr: &u64 = self.get_global(function);
         mem::transmute(ptr)
     }
 }
+
 impl<'a> ExecutionEngine<'a> for JitEngine {
     type Options = JitOptions;
     fn new(module: &'a Module, options: JitOptions) -> Result<CSemiBox<'a, JitEngine>, CBox<str>> {
         unsafe {
             let mut ee = mem::uninitialized();
             let mut out = mem::zeroed();
+
             engine::LLVMLinkInMCJIT();
+
             if target::LLVM_InitializeNativeTarget() == 1 {
                 return Err("failed to initialize native target".into());
             }
@@ -172,6 +175,12 @@ impl<'a> ExecutionEngine<'a> for JitEngine {
                 EnableFastISel: 1,
                 MCJMM: ptr::null_mut(),
             };
+
+            LLVMInitializeMCJITCompilerOptions(
+                &mut options,
+                mem::size_of::<LLVMMCJITCompilerOptions>(),
+            );
+
             let size = mem::size_of::<LLVMMCJITCompilerOptions>();
             let result = engine::LLVMCreateMCJITCompilerForModule(
                 &mut ee,
@@ -239,6 +248,7 @@ impl GenericValueCast for f64 {
         }
     }
 }
+
 impl GenericValueCast for f32 {
     fn to_generic(self, ctx: &Context) -> CSemiBox<GenericValue> {
         unsafe {

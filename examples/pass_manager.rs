@@ -1,12 +1,23 @@
 extern crate llvm;
-use llvm::*;
 
-#[link(name = "ffi")]
-extern "C" {}
+use llvm::{Builder, Compile, Context, Module, PassManager, PassRegistry, Type};
 
 fn main() {
     let ctx = Context::new();
-    let module = Module::new("simple", &ctx);
+    let module = Module::new("main", &ctx);
+    let builder = Builder::new(&ctx);
+
+    let pm_reg = PassRegistry::new();
+    let fpm = PassManager::new_func_pass(&module);
+
+    pm_reg.init_all();
+
+    fpm.add_instruction_combining()
+        .add_reassociate()
+        .add_gvn()
+        .add_cfg()
+        .add_tail_call_elimination();
+
     let func = module.add_function("fib", Type::get::<fn(u64) -> u64>(&ctx));
     let value = &func[0];
     let entry = func.append("entry");
@@ -30,24 +41,11 @@ fn main() {
     let fb = builder.build_tail_call(func, &[b]);
     builder.build_ret(builder.build_add(fa, fb));
 
-    let main = module.add_function("main", Type::get::<fn(u64) -> u64>(&ctx));
-    let main_body = main.append("entry");
-    builder.position_at_end(main_body);
-    builder.build_ret(builder.build_call(func, &vec![10u64.compile(&ctx)]));
-
-    println!("{:?}", module);
-
     module
         .write_bitcode("out.bc")
         .expect("Couldn't write to file");
 
     module.verify().unwrap();
-    let ee = JitEngine::new(&module, JitOptions { opt_level: 0 }).unwrap();
-    ee.with_function(func, |fib: extern "C" fn(u64) -> u64| {
-        for i in 0..10 {
-            println!("fib {} = {}", i, fib(i))
-        }
-    });
 
-    ee.remove_module(&module);
+    println!("{:?}", module);
 }

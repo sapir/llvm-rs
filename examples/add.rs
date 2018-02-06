@@ -1,11 +1,13 @@
 extern crate llvm;
 use llvm::*;
-use llvm::Attribute::*;
+
+#[link(name = "ffi")]
+extern "C" {}
+
 fn main() {
     let ctx = Context::new();
     let module = Module::new("add", &ctx);
     let func = module.add_function("add", Type::get::<fn(f64, f64) -> f64>(&ctx));
-    func.add_attributes(&[NoUnwind, ReadNone]);
     let entry = func.append("entry");
     let builder = Builder::new(&ctx);
     builder.position_at_end(entry);
@@ -18,4 +20,6 @@ fn main() {
     ee.with_function(func, |add: extern "C" fn((f64, f64)) -> f64| {
         println!("{} + {} = {}", 1., 2., add((1., 2.)));
     });
+
+    ee.remove_module(&module);
 }

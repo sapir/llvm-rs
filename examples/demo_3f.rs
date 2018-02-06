@@ -1,14 +1,17 @@
 extern crate llvm;
 extern crate llvm_sys;
 use llvm::*;
-use llvm::Attribute::*;
+
+#[link(name = "ffi")]
+extern "C" {}
+
 fn main() {
     let ctx = Context::new();
     let module = Module::new("simple", &ctx);
     type N = f64;
     type T = extern "C" fn(N) -> N;
     let func = module.add_function("thr", Type::get::<T>(&ctx));
-    func.add_attributes(&[NoUnwind, ReadNone]);
+
     let entry = func.append("entry");
     let builder = Builder::new(&ctx);
     fn n(x: N) -> N {
@@ -26,4 +29,6 @@ fn main() {
             println!("thr {} = {}", i, thr(0 as N))
         }
     });
+
+    ee.remove_module(&module);
 }
