@@ -15,7 +15,7 @@ To use this in your project, add the following to your `Cargo.toml`
 ```toml
 [dependencies]
 ...
-llvm-alt = { git ="https://github.com/lapz/llvm-rs/"}
+llvm-rs = { git ="https://github.com/lapz/llvm-rs/"}
 ```
 
 Bugs
