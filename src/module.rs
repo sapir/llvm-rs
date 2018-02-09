@@ -34,7 +34,7 @@ impl Module {
     /// you instance it in because the context contains it.
     ///
     /// ```rust
-    /// use llvm::*;
+    /// use llvm_rs::*;
     /// let context = Context::new();
     /// let context = context.as_semi();
     /// let module = Module::new("name", &context);

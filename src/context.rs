@@ -30,7 +30,7 @@ pub trait GetContext {
     /// Returns a reference to the context that owns this value.
     ///
     /// ```rust
-    /// use llvm::*;
+    /// use llvm_rs::*;
     /// let context = Context::new();
     /// let module = Module::new("rowrowfightthapowa", &context.as_semi());
     /// assert!(context == *module.get_context());
