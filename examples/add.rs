@@ -1,4 +1,4 @@
-extern crate llvm;
+extern crate llvm_rs as llvm;_rs as llvm;
 use llvm::*;
 
 #[link(name = "ffi")]
