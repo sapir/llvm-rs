@@ -1,4 +1,4 @@
-extern crate llvm_rs as llvm;;
+extern crate llvm_rs as llvm;
 
 use llvm::*;
 
