@@ -12,6 +12,9 @@ pub extern crate llvm_sys as ffi;
 #[cfg(not(feature = "expose_bindings"))]
 extern crate llvm_sys as ffi;
 
+#[link(name = "ffi")]
+extern "C" {}
+
 #[macro_use]
 mod macros;
 mod buffer;
