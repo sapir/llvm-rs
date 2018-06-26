@@ -208,6 +208,17 @@ impl Builder {
             ).into()
         }
     }
+    /// Build an instruction that extracts a value from an aggregate data value.
+    pub fn build_extract_value(&self, agg: &Value, index: usize) -> &Value {
+        unsafe {
+            core::LLVMBuildExtractValue(
+                self.into(),
+                agg.into(),
+                index as c_uint,
+                NULL_NAME.as_ptr()
+            ).into()
+        }
+    }
     /// Build an instruction that computes the address of a subelement of an aggregate data structure.
     ///
     /// Basically type-safe pointer arithmetic.
