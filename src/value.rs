@@ -213,6 +213,12 @@ impl Function {
             core::LLVMGetElementType(ty).into()
         }
     }
+    /// Delete the function
+    pub fn delete(&self) {
+        unsafe {
+            core::LLVMDeleteFunction(self.into());
+        }
+    }
 }
 
 impl GetContext for Function {
