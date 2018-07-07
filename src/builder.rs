@@ -276,6 +276,7 @@ impl Builder {
     bin_op!{build_div, LLVMBuildSDiv, LLVMBuildFDiv}
     bin_op!{build_shl, LLVMBuildShl}
     bin_op!{build_ashr, LLVMBuildAShr}
+    bin_op!{build_lshr, LLVMBuildLShr}
     bin_op!{build_and, LLVMBuildAnd}
     bin_op!{build_or, LLVMBuildOr}
     bin_op!{build_xor, LLVMBuildXor}
